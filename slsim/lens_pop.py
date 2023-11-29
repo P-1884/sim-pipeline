@@ -1,3 +1,7 @@
+import os
+import sys
+print('CWD',os.getcwd())
+print('PATH',sys.path)
 from slsim.Pipelines.skypy_pipeline import SkyPyPipeline
 from slsim.lens import (
     Lens,
@@ -5,7 +9,7 @@ from slsim.lens import (
 )
 import numpy as np
 from slsim.lensed_population_base import LensedPopulationBase
-
+from tqdm import tqdm
 
 class LensPop(LensedPopulationBase):
     """Class to perform samples of galaxy-galaxy lensing."""
@@ -61,6 +65,7 @@ class LensPop(LensedPopulationBase):
         if deflector_type in ["elliptical", "all-galaxies"] or source_type in [
             "galaxies"
         ]:
+            #This returns two tables (one for red, one for blue galaxies) with columns: ('z','M','coeff','ellipticity','physical_size','stellar_mass','angular_size','mag_g','mag_r','mag_i','mag_z','mag_Y'). Note, the redshifts go up to the z_range set in the LSST config file (currently <5, so the elliptical galaxies aren't necessarily low redshift). There were ~54,000 galaxies in the generated catalogue in 1deg^2, using cosmo=LambdaCDM and the LSST yaml config.
             pipeline = SkyPyPipeline(
                 skypy_config=skypy_config,
                 sky_area=sky_area,
@@ -217,7 +222,8 @@ class LensPop(LensedPopulationBase):
         #        print(np.int(num_lenses * num_sources_tested_mean))
 
         # Draw a population of galaxy-galaxy lenses within the area.
-        for _ in range(num_lenses):
+        print('Drawing Lens Systems')
+        for _ in tqdm(range(num_lenses)):
             lens = self._lens_galaxies.draw_deflector()
             test_area = draw_test_area(deflector=lens)
             num_sources_tested = self.get_num_sources_tested(testarea=test_area)

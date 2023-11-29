@@ -150,7 +150,7 @@ class Lens(LensedSystemBase):
         return self._image_positions
 
     def validity_test(
-        self, min_image_separation=0, max_image_separation=10, mag_arc_limit=None
+        self, min_image_separation=0, max_image_separation=10, mag_arc_limit=None,min_magnification=None
     ):
         """Check whether lensing configuration matches selection and plausibility
         criteria.
@@ -214,6 +214,13 @@ class Lens(LensedSystemBase):
                     break
             if bool_mag_limit is False:
                 return False
+        
+        # Criteria 7 (optional)
+        # Impose a lower magnification cut on the extended source magnification.
+        if min_magnification is not None and self._source_type in ["extended"]:
+            if self.extended_source_magnification() < min_magnification:
+                return False
+
         # TODO make similar criteria for point source magnitudes
         return True
         # TODO: test for signal-to-noise ratio in surface brightness

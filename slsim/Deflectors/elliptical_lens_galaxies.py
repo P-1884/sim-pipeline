@@ -44,8 +44,10 @@ class EllipticalLensGalaxies(DeflectorBase):
 
         self._galaxy_select = deflector_cut(galaxy_list, **kwargs_cut)
         self._num_select = len(self._galaxy_select)
+#        print('_num_select:',self._num_select)
         z_min, z_max = 0, np.max(self._galaxy_select["z"])
         redshift = np.arange(z_min, z_max, 0.1)
+#        print('Setting vel_disp from SDSS')
         z_list, vel_disp_list = vel_disp_sdss(
             sky_area, redshift, vd_min=100, vd_max=500, cosmology=cosmo, noise=True
         )
@@ -54,16 +56,24 @@ class EllipticalLensGalaxies(DeflectorBase):
         self._galaxy_select.reverse()
         # sort velocity dispersion, largest values first
         vel_disp_list = np.flip(np.sort(vel_disp_list))
+#        print(f'Min vel_disp from list: {min(vel_disp_list)}')
         num_vel_disp = len(vel_disp_list)
+#        print('num_vel_disp',num_vel_disp)
         # abundance match velocity dispersion with elliptical galaxy catalogue
         if num_vel_disp >= self._num_select:
+            #selection_indx_rand = np.random.choice(np.arange(0,num_vel_disp,1),size=self._num_select,replace=False).tolist()
+            #selection_indx_rand.sort()
+            #selection_indx = np.linspace(0,num_vel_disp-1,self._num_select).astype('int')
+            #self._galaxy_select["vel_disp"] = vel_disp_list[selection_indx_rand]
+            #self._galaxy_select["vel_disp"] = vel_disp_list[selection_indx]
             self._galaxy_select["vel_disp"] = vel_disp_list[: self._num_select]
+
             # randomly select
         else:
             self._galaxy_select = self._galaxy_select[:num_vel_disp]
             self._galaxy_select["vel_disp"] = vel_disp_list
             self._num_select = num_vel_disp
-
+#        print(f'Min from selected: {min(self._galaxy_select["vel_disp"])}')
         # TODO: random reshuffle of matched list
 
     def deflector_number(self):
@@ -82,7 +92,9 @@ class EllipticalLensGalaxies(DeflectorBase):
 
         index = random.randint(0, self._num_select - 1)
         deflector = self._galaxy_select[index]
+#        print('DEFL',deflector)
         if deflector["vel_disp"] == -1:
+#            print('Setting vel_disp from m_star')
             stellar_mass = deflector["stellar_mass"]
             vel_disp = vel_disp_from_m_star(stellar_mass)
             deflector["vel_disp"] = vel_disp

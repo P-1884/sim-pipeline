@@ -1,4 +1,7 @@
 # See the ReadMe file for parameter definitions
+# Also see here: https://skypy.readthedocs.io/en/stable/examples/galaxies/plot_schechter.html#sphx-glr-examples-galaxies-plot-schechter-py
+#And here: https://ui.adsabs.harvard.edu/abs/2021arXiv211211110D/abstract for hopefully some values? From Simon: 'It is basically SDSS velocity dispersion functions'. Use skypy for the galaxy lunminisoty function, then put in all the other values by hand. SLsim is using SDSS for the velocity dispersions, then using Skypy to make a galaxy liuinosity function to make the galaxy catalogue.
+#For my abundance matching problem Area needs to match, otherwise overpredict or underpredict the number of lenses. Not good to just pick the same number (rather than over the same area) for this reason. Can go down to lower vel_disp, or pick lower/higher stellar masses.  
 mag_lim: 30
 fsky: 0.1 deg2
 z_range: !numpy.arange [0, 5.01, 0.1]

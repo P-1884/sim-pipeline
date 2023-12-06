@@ -1,3 +1,7 @@
+#import os
+#os.chdir('/home/philholloway/sim-pipeline/')
+#import sys
+#sys.path.append('/home/philholloway/sim-pipeline/')
 import numpy as np
 from astropy.table import Table, vstack
 from astropy.table import Column
@@ -384,7 +388,7 @@ def multiple_lens_injection_fast(
                 ra[i],
                 dec[i],
                 num_cutout_per_patch,
-                save_files_as=save_files_as
+                save_files_as=save_files_as,
                 lens_cut=lens_cut,
                 noise=noise,
             )

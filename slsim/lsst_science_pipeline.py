@@ -171,6 +171,7 @@ def lens_inejection_fast(
     num_cutout_per_patch=10,
     lens_cut=None,
     flux=None,
+    save_files_as=None,
 ):
     """Chooses a random lens from the lens population and injects it to a DC2 cutout
     image. For this one needs to provide a butler to this function. To initiate Butler,
@@ -244,7 +245,8 @@ def lens_inejection_fast(
             )
             cutout_image = coadd[j][cutout_bbox]
             objects = [(geom.Point2D(x_center[i], y_center[i]), lens, delta_pix)]
-            final_injected_image = add_object(cutout_image, objects, calibFluxRadius=12)
+            final_injected_image = add_object(cutout_image, objects, calibFluxRadius=12,
+                                              save_files_as=save_files_as,coadd_num=j)
             center_wcs = wcs.pixelToSky(objects[0][0])
             ra_deg = center_wcs.getRa().asDegrees()
             dec_deg = center_wcs.getDec().asDegrees()
@@ -324,6 +326,7 @@ def multiple_lens_injection_fast(
     num_cutout_per_patch=10,
     lens_cut=None,
     flux=None,
+    save_files_as = None,
 ):
     """Injects random lenses from the lens population to multiple DC2 cutout images
     using lens_inejection_fast function. For this one needs to provide a butler to this
@@ -355,13 +358,14 @@ def multiple_lens_injection_fast(
                 num_cutout_per_patch,
                 lens_cut=None,
                 flux=None,
+                save_files_as=save_files_as
             )
         )
     injected_image_catalog = vstack(injected_images)
     return injected_image_catalog
 
 
-def add_object(dp0_image, objects, calibFluxRadius=12):
+def add_object(dp0_image, objects, calibFluxRadius=12,save_files_as=None,coadd_num=None):
     """Injects a given object in a dp0 cutout image.
 
     :param dp0_image: cutout image from the dp0 data or any other image
@@ -378,7 +382,9 @@ def add_object(dp0_image, objects, calibFluxRadius=12):
     bbox = dp0_image.getBBox()
     pixscale = wcs.getPixelScale(bbox.getCenter()).asArcseconds()
     num_pix_cutout = np.shape(dp0_image.image.array)[0]
+    cutout_num=-1 
     for spt, lens, pix_scale in objects:
+        cutout_num+=1
         num_pix_lens = np.shape(lens)[0]
         if num_pix_cutout != num_pix_lens:
             raise ValueError(
@@ -399,6 +405,8 @@ def add_object(dp0_image, objects, calibFluxRadius=12):
             apCorr = psf.computeApertureFlux(calibFluxRadius, pt)
 
             psfArr /= apCorr
+            np.save(f'./{save_files_as}_{coadd_num}_{cutout_num}_PSF.npy',psfArr)
+            np.save(f'./{save_files_as}_{coadd_num}_{cutout_num}_Im.npy',np.array(dp0_image.image.array))
             convolved_image = convolve2d(
                 lens, psfArr, mode="same", boundary="symm", fillvalue=0.0
             )

@@ -29,6 +29,7 @@ class LensPop(LensedPopulationBase):
         sky_area=None,
         filters=None,
         cosmo=None,
+        pipeline_table=None
     ):
         """
 
@@ -78,7 +79,7 @@ class LensPop(LensedPopulationBase):
         if kwargs_mass2light is None:
             kwargs_mass2light = {}
 
-        if deflector_type == "elliptical":
+        if deflector_type == "elliptical" and pipeline_table is None:
             from slsim.Deflectors.elliptical_lens_galaxies import (
                 EllipticalLensGalaxies,
             )
@@ -105,7 +106,9 @@ class LensPop(LensedPopulationBase):
                 cosmo=cosmo,
                 sky_area=sky_area,
             )
-
+        elif pipeline_table is not None: 
+            self._lens_galaxies = pipeline_table
+            print('Using inputted skypy table')
         else:
             raise ValueError("deflector_type %s is not supported" % deflector_type)
 

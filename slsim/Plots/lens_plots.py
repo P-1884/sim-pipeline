@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 from astropy.visualization import make_lupton_rgb
 from slsim.image_simulation import simulate_image
-
+import matplotlib.pyplot as pl
 
 class LensingPlots(object):
     """A class to create and display simulated gravitational lensing images using the
     provided configurations for the source (blue) and lens (red) galaxies."""
 
-    def __init__(self, lens_pop, num_pix=64, observatory="LSST", **kwargs):
+    def __init__(self, lens_pop=None, num_pix=64, observatory="LSST", **kwargs):
         """
 
         :param lens_pop: lens population class
@@ -52,16 +52,29 @@ class LensingPlots(object):
             observatory=self._observatory,
             **self._kwargs
         )
-        image_b = simulate_image(
+        image_b,noise_b = simulate_image(
             lens_class=lens_class,
             band=rgb_band_list[2],
             num_pix=self.num_pix,
             add_noise=add_noise,
             observatory=self._observatory,
+            return_noise=True,
             **self._kwargs
         )
         image_rgb = make_lupton_rgb(image_r, image_g, image_b, stretch=0.5)
         return image_rgb
+
+    def return_image_and_noise(self, lens_system, band, add_noise=True):
+        lens_class = lens_system
+        image,noise = simulate_image(
+            lens_class=lens_class,
+            band=band,
+            num_pix=self.num_pix,
+            add_noise=add_noise,
+            observatory=self._observatory,
+            return_noise=True,
+            **self._kwargs)
+        return image,noise
 
     def plot_montage(
         self,

@@ -247,7 +247,7 @@ def point_source_coordinate_properties(
     dec_lens_value = lens_center[1]
     lens_pix_coordinate = image_data.map_coord2pix(ra_lens_value, dec_lens_value)
 
-    ps_coordinate = lens_class.image_positions()
+    ps_coordinate = lens_class.point_source_image_positions()
     ra_image_values = ps_coordinate[0]
     dec_image_values = ps_coordinate[1]
     # image_magnitude = lens_class.point_source_magnitude(band=band, lensed=True)
@@ -503,6 +503,9 @@ def lens_image(
     transform_pix2angle,
     exposure_time=None,
     t_obs=None,
+    std_gaussian_noise=None,
+    with_source=True,
+    with_deflector=True,
 ):
     """Creates lens image on the basis of given information. It can simulate both static
     lens image and variable lens image.
@@ -520,6 +523,10 @@ def lens_image(
     :param t_obs: an observation time [day]. This is applicable only for variable
         source. In case of point source, if we do not provide t_obs, considers no
         variability in the lens.
+    :param std_gaussian_noise: standard deviation for a gaussian noise
+    :param with_source: If True, simulates image with extended source in lens
+        configuration.
+    :param with_deflector: If True, simulates image with deflector.
     :return: lens image
     """
     deflector_source = sharp_image(
@@ -528,6 +535,8 @@ def lens_image(
         mag_zero_point=mag_zero_point,
         delta_pix=delta_pix,
         num_pix=num_pix,
+        with_source=with_source,
+        with_deflector=with_deflector,
     )
     convolved_deflector_source = convolved_image(
         image=deflector_source, psf_kernel=psf_kernel
@@ -572,6 +581,9 @@ def lens_image_series(
     transform_pix2angle,
     exposure_time=None,
     t_obs=None,
+    std_gaussian_noise=None,
+    with_source=True,
+    with_deflector=True,
 ):
     """Creates lens image on the basis of given information. This function is designed
     to simulate time series images of a lens.
@@ -587,6 +599,11 @@ def lens_image_series(
     :param exposure_time: list of exposure time for each exposure. It could be single
         exposure time or a exposure map.
     :param t_obs: array of image observation time [day] for a lens.
+    :param std_gaussian_noise: array of standard deviation for gaussian noise for each
+        image
+    :param with_source: If True, simulates image with extended source in lens
+        configuration.
+    :param with_deflector: If True, simulates image with deflector.
     :return: list of series of images of a lens
     """
     image_series = []
@@ -603,6 +620,9 @@ def lens_image_series(
             transform_pix2angle=transf_matrix,
             exposure_time=expo_time,
             t_obs=time,
+            std_gaussian_noise=std_gaussian_noise,
+            with_source=with_source,
+            with_deflector=with_deflector,
         )
         image_series.append(image)
 

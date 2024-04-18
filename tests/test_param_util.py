@@ -10,6 +10,9 @@ from slsim.Util.param_util import (
     images_to_pixels,
     pixels_to_images,
     random_radec_string,
+    transformmatrix_to_pixelscale,
+    magnitude_to_amplitude,
+    amplitude_to_magnitude,
 )
 from slsim.Sources.SourceVariability.variability import Variability
 
@@ -17,6 +20,8 @@ from slsim.Sources.SourceVariability.variability import Variability
 def test_epsilon2e():
     e = epsilon2e(0)
     assert e == 0
+    with pytest.raises(ValueError):
+        epsilon2e(17)
 
 
 def test_e2epsilon():
@@ -90,10 +95,15 @@ def test_interpolation_for_sinusoidal():
     # manually calculate expectation snapshots
     expect_image_snapshots = np.zeros((4, 2, 2))
     expect_image_snapshots[:, 0, 0] = np.array(
-        [0.0, 0.0, 0.0, (np.sin(np.pi * np.pi) - 0.0) * 0.5 / (np.pi - 1.0)]
+        [0.0, 0.0, 0.0, abs(np.sin(np.pi * np.pi) - 0.0) * 0.5 / (np.pi - 1.0)]
     )
     expect_image_snapshots[:, 0, 1] = np.array(
-        [0.0, 0.0, 0.0, (2.0 * np.sin(2.0 * np.pi * np.pi) - 0.0) * 0.5 / (np.pi - 1.0)]
+        [
+            0.0,
+            0.0,
+            0.0,
+            abs(2.0 * np.sin(2.0 * np.pi * np.pi) - 0.0) * 0.5 / (np.pi - 1.0),
+        ]
     )
     expect_image_snapshots[:, 1, 0] = np.array([4.0, 3.0, 2.0, 2.0])
     expect_image_snapshots[:, 1, 1] = np.array(
@@ -109,3 +119,47 @@ def test_random_radec_string():
     )
     assert len(radec_result) == 50
     assert all(isinstance(item, str) for item in radec_result) is True
+
+
+def test_transformmatrix_to_pixelscale():
+    transform_matrix = np.array([[2, 0], [0, 3]])
+
+    result = transformmatrix_to_pixelscale(transform_matrix)
+    expected_result = np.sqrt(6)
+
+    assert result == expected_result
+
+
+def test_amplitude_to_magnitude():
+    low_flux = 10
+    high_flux = 1000
+    zero_point = 100
+    low_mag = amplitude_to_magnitude(low_flux, zero_point)
+    high_mag = amplitude_to_magnitude(high_flux, zero_point)
+    assert high_mag < low_mag
+    # Test that a constant increasing amplitude makes a constant
+    # decreasing magnitude
+    fluxes = np.linspace(10**3, 10**5, 50)
+    delta_fluxes = fluxes[1:] - fluxes[:-1]
+    assert all(delta_fluxes > 0)
+    magnitudes = amplitude_to_magnitude(fluxes, zero_point)
+    delta_magnitudes = magnitudes[1:] - magnitudes[:-1]
+    assert all(delta_magnitudes < 0)
+
+
+def test_magnitude_to_amplitude():
+    low_mag = 23
+    high_mag = 21
+    zero_point = 20
+    low_flux = magnitude_to_amplitude(low_mag, zero_point)
+    high_flux = magnitude_to_amplitude(high_mag, zero_point)
+    assert high_flux > low_flux
+    # Test that this is the inverse of amplitude_to_magnitude()
+    new_low_mag = amplitude_to_magnitude(low_flux, zero_point)
+    new_high_mag = amplitude_to_magnitude(high_flux, zero_point)
+    assert low_mag == new_low_mag
+    assert high_mag == new_high_mag
+
+
+if __name__ == "__main__":
+    pytest.main()
